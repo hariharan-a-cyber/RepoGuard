@@ -1,0 +1,9 @@
+{
+  "id": "python.sql_injection",
+  "name": "SQL Injection",
+  "language": "python",
+  "pattern": "(SELECT|INSERT|UPDATE|DELETE)[^\\n;]*(\\+|%\\s*\\(|f\"|f'|\\{[^}]+\\})|f['\"][^'\"]*(?:SELECT|INSERT|UPDATE|DELETE)[^'\"]*\\{",
+  "severity": "high",
+  "description": "SQL query built with string formatting — attacker can inject SQL.",
+  "fix": "Use parameterized queries. Example: cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))"
+}

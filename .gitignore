@@ -1,0 +1,43 @@
+# Environment variables (contains secrets)
+.env
+
+# Python virtual environment
+.venv/
+venv/
+
+# VS Code settings
+.vscode/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Test/cache artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Build artifacts
+dist/
+build/
+
+# Node modules (if present)
+node_modules/
+
+# Firebase local cache
+.firebase/
+
+# Scan/output artifacts
+artifacts/
+
+# Temporary benchmark outputs
+benchmark/results/

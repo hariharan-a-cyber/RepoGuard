@@ -1,0 +1,9 @@
+{
+  "id": "python.exec_usage",
+  "name": "Dynamic Code Execution",
+  "language": "python",
+  "pattern": "\\bexec\\s*\\(",
+  "severity": "high",
+  "description": "Use of exec can execute attacker-controlled code.",
+  "fix": "Avoid exec. Replace with explicit control flow and validated inputs."
+}

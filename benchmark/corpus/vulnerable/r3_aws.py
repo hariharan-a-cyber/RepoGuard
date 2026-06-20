@@ -1,0 +1,2 @@
+# VULN: real AWS access key id
+AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE2"

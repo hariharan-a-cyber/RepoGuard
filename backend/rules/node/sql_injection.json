@@ -1,0 +1,9 @@
+{
+  "id": "node.sql_injection",
+  "name": "SQL Injection",
+  "language": "node",
+  "pattern": "(SELECT|INSERT|UPDATE|DELETE)[^\\n;]*(\\+|`|\\$\\{)",
+  "severity": "high",
+  "description": "SQL query built by string concatenation — attacker can inject SQL.",
+  "fix": "Use parameterized queries. Example: db.query('SELECT * FROM users WHERE id = ?', [userId])"
+}

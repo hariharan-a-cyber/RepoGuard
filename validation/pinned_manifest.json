@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "description": "Pinned local validation manifest for deterministic Phase 4 checks.",
+  "repos": [
+    {
+      "id": "fixture-risky-js",
+      "path": "../tests/fixtures/validation/repo-risky",
+      "pinned_ref": "local-fixture-v1",
+      "expected_issue_count": 1,
+      "issue_tolerance": 1,
+      "expected_high_count": 1,
+      "high_tolerance": 1
+    },
+    {
+      "id": "fixture-safe-py",
+      "path": "../tests/fixtures/validation/repo-safe",
+      "pinned_ref": "local-fixture-v1",
+      "expected_issue_count": 0,
+      "issue_tolerance": 1,
+      "expected_high_count": 0,
+      "high_tolerance": 0
+    }
+  ]
+}

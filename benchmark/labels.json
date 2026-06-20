@@ -1,0 +1,100 @@
+{
+  "description": "Ground-truth labels (category-based). Vulnerable files list the category that SHOULD be detected by any engine layer. Safe files should produce NO findings.",
+  "vulnerable": {
+    "sql_injection.py": [
+      "sql_injection"
+    ],
+    "sql_injection.js": [
+      "sql_injection"
+    ],
+    "command_injection.py": [
+      "command_injection"
+    ],
+    "hardcoded_secret.py": [
+      "hardcoded_secret"
+    ],
+    "weak_random.py": [
+      "weak_random"
+    ],
+    "unsafe_yaml.py": [
+      "unsafe_deserialization"
+    ],
+    "unsafe_pickle.py": [
+      "unsafe_deserialization"
+    ],
+    "ssti.py": [
+      "ssti"
+    ],
+    "credential_url.py": [
+      "credential_url"
+    ],
+    "open_redirect.js": [
+      "open_redirect"
+    ],
+    "jwt_no_expiry.js": [
+      "jwt_no_expiry"
+    ],
+    "insecure_auth.js": [
+      "insecure_auth"
+    ],
+    "hard_sql_concat.py": [
+      "sql_injection"
+    ],
+    "hard_command.py": [
+      "command_injection"
+    ],
+    "hard_eval.py": [
+      "code_injection"
+    ],
+    "unseen_open_redirect.js": [
+      "open_redirect"
+    ],
+    "unseen_weak_session.js": [
+      "weak_random"
+    ],
+    "unseen_real_secret.py": [
+      "hardcoded_secret"
+    ],
+    "unseen_command_js.js": [
+      "command_injection"
+    ],
+    "r3_nosql.js": [
+      "nosql_injection"
+    ],
+    "r3_path_traversal.py": [
+      "path_traversal"
+    ],
+    "r3_sqli_inline.py": [
+      "sql_injection"
+    ],
+    "r3_aws.py": [
+      "hardcoded_secret"
+    ]
+  },
+  "safe": [
+    "safe_sql.py",
+    "safe_sql.js",
+    "safe_subprocess.py",
+    "safe_config.py",
+    "safe_random.py",
+    "safe_yaml.py",
+    "safe_serialize.py",
+    "safe_template.py",
+    "safe_url.py",
+    "safe_redirect.js",
+    "safe_jwt.js",
+    "safe_auth.js",
+    "plain_logic.py",
+    "hard_safe_sql_comment.py",
+    "hard_safe_random_ui.js",
+    "hard_safe_test_secret.py",
+    "unseen_safe_redirect.js",
+    "unseen_safe_exec.js",
+    "unseen_safe_token.py",
+    "unseen_safe_clientid.py",
+    "r3_safe_log.py",
+    "r3_safe_quoted.py",
+    "r3_safe_const_redirect.js",
+    "r3_safe_backoff.py"
+  ]
+}

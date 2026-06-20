@@ -1,0 +1,9 @@
+{
+  "id": "node.eval_usage",
+  "name": "Dynamic Code Execution",
+  "language": "node",
+  "pattern": "\\beval\\s*\\(",
+  "severity": "high",
+  "description": "Use of eval can execute attacker-controlled code.",
+  "fix": "Avoid eval. Use safe parsing/dispatch logic and strict input validation."
+}

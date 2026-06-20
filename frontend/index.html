@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RepoGuard — Security scanning for GitHub repositories</title>
+  <meta name="description" content="RepoGuard scans GitHub repositories for security vulnerabilities with a deterministic static analysis pipeline." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2L4 7v9c0 6.6 5.1 12.8 12 14 6.9-1.2 12-7.4 12-14V7L16 2z' fill='none' stroke='%2322d3a8' stroke-width='2.2' stroke-linejoin='round'/%3E%3Cpolyline points='11,16 14.5,19.5 21,13' fill='none' stroke='%2322d3a8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="RepoGuard">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="26" height="26" fill="none">
+          <path d="M16 3 5 7v8c0 6.6 4.5 11.3 11 14 6.5-2.7 11-7.4 11-14V7L16 3Z" stroke="url(#g)" stroke-width="2" stroke-linejoin="round"/>
+          <path d="m11 16 3.2 3.2L21 12" stroke="url(#g)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs><linearGradient id="g" x1="5" y1="3" x2="27" y2="31" gradientUnits="userSpaceOnUse"><stop stop-color="#4ade80"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+        </svg>
+      </span>
+      <span class="brand-name">Repo<span class="brand-accent">Guard</span></span>
+    </a>
+    <nav class="topnav" aria-label="Primary">
+      <a href="#scan">Scan</a>
+      <a href="#how">How it works</a>
+      <a href="#pipeline">Pipeline</a>
+      <a href="#integrate">GitHub App</a>
+    </nav>
+    <div class="topbar-actions" id="navAuthArea">
+      <button class="btn btn-ghost" id="navLoginBtn" type="button">Sign in</button>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-inner">
+        <span class="badge-pill"><span class="pulse-dot"></span>Deterministic security analysis</span>
+        <h1 class="hero-title">Catch vulnerabilities<br/><span class="grad-text">before they merge.</span></h1>
+        <p class="hero-sub">
+          RepoGuard clones any GitHub repository and runs a five-stage static
+          analysis pipeline — rules, taint tracking, secret detection, and
+          dependency auditing — returning ranked, evidence-backed findings with exact fixes.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#scan">Start a scan</a>
+          <a class="btn btn-ghost" href="#integrate">Install the GitHub App</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCAN (moved above How it works) -->
+    <section class="section section-scan" id="scan">
+      <header class="section-head">
+        <span class="eyebrow">Scanner</span>
+        <h2>Scan a repository</h2>
+        <p class="section-lead">Paste a public GitHub URL. RepoGuard does the rest in real time.</p>
+      </header>
+
+      <div class="scan-card">
+        <label class="field-label" for="repoUrl">Repository URL</label>
+        <div class="scan-input-row">
+          <span class="input-prefix" aria-hidden="true">
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          </span>
+          <input id="repoUrl" class="scan-input" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="github.com/owner/repository" />
+          <button class="btn btn-primary scan-go" id="scanBtn" type="button">
+            <span class="scan-go-label">Scan</span>
+          </button>
+        </div>
+        <div class="scan-opts">
+          <label class="opt"><input type="checkbox" id="strictMode" /><span class="opt-box"></span>Strict mode <span class="opt-hint">higher recall</span></label>
+          <label class="opt"><input type="checkbox" id="quickMode" /><span class="opt-box"></span>Quick mode <span class="opt-hint">large repos</span></label>
+        </div>
+        <div class="scan-examples">
+          <span>Try</span>
+          <button class="chip" data-repo="https://github.com/expressjs/express" type="button">expressjs/express</button>
+          <button class="chip" data-repo="https://github.com/pallets/flask" type="button">pallets/flask</button>
+        </div>
+        <p class="scan-note" id="scanNote" role="status" aria-live="polite"></p>
+      </div>
+
+      <!-- LIVE SCAN PROGRESS -->
+      <div class="scan-live" id="scanLive" hidden>
+        <div class="live-header">
+          <div class="live-title">
+            <span class="live-spinner" aria-hidden="true"></span>
+            <span id="liveRepo">Scanning…</span>
+          </div>
+          <div class="live-langs" id="liveLangs"></div>
+        </div>
+        <ol class="stage-list" id="stageList">
+          <li class="stage" data-stage="cloning"><span class="stage-icon"></span><span class="stage-name">Cloning repository</span><span class="stage-status"></span></li>
+          <li class="stage" data-stage="detecting"><span class="stage-icon"></span><span class="stage-name">Detecting language &amp; frameworks</span><span class="stage-status"></span></li>
+          <li class="stage" data-stage="analyzing"><span class="stage-icon"></span><span class="stage-name">Rule engine &amp; AST analysis</span><span class="stage-status"></span></li>
+          <li class="stage" data-stage="taint"><span class="stage-icon"></span><span class="stage-name">Taint &amp; data-flow tracking</span><span class="stage-status"></span></li>
+          <li class="stage" data-stage="secrets"><span class="stage-icon"></span><span class="stage-name">Secret detection</span><span class="stage-status"></span></li>
+          <li class="stage" data-stage="deps"><span class="stage-icon"></span><span class="stage-name">Dependency audit (OSV)</span><span class="stage-status"></span></li>
+          <li class="stage" data-stage="post-processing"><span class="stage-icon"></span><span class="stage-name">Ranking &amp; scoring findings</span><span class="stage-status"></span></li>
+        </ol>
+        <div class="live-shimmer" id="liveShimmer"><div class="shimmer-bar"></div></div>
+        <p class="live-msg" id="liveMsg">Starting…</p>
+      </div>
+
+      <!-- RESULTS -->
+      <div class="results" id="results" hidden></div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section" id="how">
+      <header class="section-head">
+        <span class="eyebrow">How it works</span>
+        <h2>Three steps from URL to report</h2>
+      </header>
+      <div class="steps">
+        <article class="step"><span class="step-no">01</span><h3>Point it at a repo</h3><p>Paste any public GitHub URL. RepoGuard validates it and performs an isolated shallow clone.</p></article>
+        <article class="step"><span class="step-no">02</span><h3>Run the pipeline</h3><p>Five deterministic analysis stages run in sequence. Findings are deduplicated, scored, and ranked.</p></article>
+        <article class="step"><span class="step-no">03</span><h3>Read the report</h3><p>A risk score, per-file breakdown, and every finding with its evidence, location, and an exact fix.</p></article>
+      </div>
+    </section>
+
+    <!-- PIPELINE -->
+    <section class="section section-alt" id="pipeline">
+      <header class="section-head">
+        <span class="eyebrow">Detection pipeline</span>
+        <h2>What runs under the hood</h2>
+        <p class="section-lead">Every scan is deterministic — the same commit yields the same findings. No model in the critical path.</p>
+      </header>
+      <ol class="pipeline">
+        <li class="pl-item"><div class="pl-index">1</div><div class="pl-body"><h3>Rule engine</h3><p>Pattern rules for injection, eval/exec, weak crypto, path traversal, NoSQL, and unsafe deserialization across Node.js and Python.</p></div></li>
+        <li class="pl-item"><div class="pl-index">2</div><div class="pl-body"><h3>AST &amp; taint analysis</h3><p>Tree-sitter parsing tracks untrusted input from sources to sinks so reported flows are reachable, not guessed.</p></div></li>
+        <li class="pl-item"><div class="pl-index">3</div><div class="pl-body"><h3>Secret detection</h3><p>High-signal patterns for API keys, tokens, and credentials, with entropy and placeholder filters to suppress noise.</p></div></li>
+        <li class="pl-item"><div class="pl-index">4</div><div class="pl-body"><h3>Dependency audit</h3><p>Manifests checked against the OSV advisory database to surface known-vulnerable packages and their fixed versions.</p></div></li>
+        <li class="pl-item"><div class="pl-index">5</div><div class="pl-body"><h3>Scoring &amp; ranking</h3><p>Findings merged, weighted by severity and confidence, and rolled into a single 0–100 risk score.</p></div></li>
+      </ol>
+    </section>
+
+    <!-- GITHUB APP -->
+    <section class="section section-integrate" id="integrate">
+      <header class="section-head">
+        <span class="eyebrow">Continuous scanning</span>
+        <h2>Install the GitHub App</h2>
+        <p class="section-lead">Scan every pull request automatically. RepoGuard posts a check run and a comment with findings on the exact commit.</p>
+      </header>
+      <div class="integrate-card">
+        <div class="integrate-status" id="integrateStatus">
+          <span class="int-dot int-unknown" id="intDot"></span>
+          <span id="intStatusText">Checking connection…</span>
+        </div>
+        <p class="integrate-desc">Once installed, opening or updating a PR triggers a scan on the PR's head commit. Results appear as a status check directly in GitHub.</p>
+        <button class="btn btn-primary" id="installBtn" type="button">
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" style="margin-right:6px"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          Install on GitHub
+        </button>
+        <p class="integrate-hint" id="integrateHint"></p>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="section section-alt" id="history" hidden>
+      <header class="section-head">
+        <span class="eyebrow">Your scans</span>
+        <h2>Recent history</h2>
+        <p class="section-lead">Click any scan to reopen its full report.</p>
+      </header>
+      <div class="history-list" id="historyList"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="brand-name">Repo<span class="brand-accent">Guard</span></span>
+      <p>Deterministic security scanning for GitHub repositories.</p>
+      <p class="footer-meta">No source code is retained after a scan completes.</p>
+    </div>
+  </footer>
+
+  <!-- AUTH MODAL -->
+  <div class="modal-overlay" id="authModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <button class="modal-close" id="authClose" type="button" aria-label="Close">&times;</button>
+      <h2 class="modal-title" id="authTitle">Welcome back</h2>
+      <p class="modal-sub" id="authSub">Sign in to run scans and keep your history.</p>
+      <button id="googleSignInBtn" class="btn-google" type="button" hidden>
+        <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+      <div class="auth-divider" id="authDivider"><span>or</span></div>
+      <div class="auth-tabs">
+        <button class="auth-tab is-active" id="tabLogin" type="button">Sign in</button>
+        <button class="auth-tab" id="tabRegister" type="button">Create account</button>
+      </div>
+      <div class="field"><label class="field-label" for="authEmail">Email</label><input id="authEmail" class="text-input" type="email" autocomplete="email" placeholder="you@example.com" /></div>
+      <div class="field"><label class="field-label" for="authPassword">Password</label><input id="authPassword" class="text-input" type="password" autocomplete="current-password" placeholder="••••••••" /></div>
+      <p class="auth-error" id="authError" role="alert"></p>
+      <button class="btn btn-primary btn-block" id="authSubmit" type="button">Sign in</button>
+    </div>
+  </div>
+
+  <!-- REPORT MODAL (full report from history) -->
+  <div class="modal-overlay report-overlay" id="reportModal" hidden>
+    <div class="report-dialog" role="dialog" aria-modal="true">
+      <button class="modal-close" id="reportClose" type="button" aria-label="Close">&times;</button>
+      <div id="reportModalBody"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+  <script src="/app.js?v=3"></script>
+</body>
+</html>
