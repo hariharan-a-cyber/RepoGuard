@@ -134,18 +134,22 @@ def _verify_firebase_id_token(id_token: str) -> str:
     # Fallback: verify Firebase JWT using Google's public key endpoint
     try:
         import jwt as pyjwt
-        import requests as http_req
+        import httpx as http_req
         resp = http_req.get(
             "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com",
             timeout=5,
         )
         if resp.status_code != 200:
             raise HTTPException(status_code=401, detail="Could not fetch Firebase public keys")
+        from cryptography import x509 as _x509
+        from cryptography.hazmat.backends import default_backend as _default_backend
         for cert_pem in resp.json().values():
             try:
+                cert_obj = _x509.load_pem_x509_certificate(cert_pem.encode(), _default_backend())
+                public_key = cert_obj.public_key()
                 payload = pyjwt.decode(
                     id_token,
-                    cert_pem,
+                    public_key,
                     algorithms=["RS256"],
                     audience=project_id,
                     options={"verify_iss": False},

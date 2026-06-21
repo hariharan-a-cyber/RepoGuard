@@ -75,7 +75,7 @@ async def add_security_headers(request: Request, call_next):
         "font-src 'self' https://fonts.gstatic.com data:; "
         "img-src 'self' data: https:; "
         "connect-src 'self' https: https://securetoken.googleapis.com https://identitytoolkit.googleapis.com; "
-        "frame-src 'self' https://accounts.google.com https://*.google.com; "
+        "frame-src 'self' https://accounts.google.com https://*.google.com https://*.firebaseapp.com; "
         "object-src 'none'; "
         "base-uri 'self'; "
         "frame-ancestors 'none'"
@@ -85,7 +85,7 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Referrer-Policy"] = "no-referrer"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     # Google sign-in popup/One Tap needs opener access across origins.
-    response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
+    response.headers["Cross-Origin-Opener-Policy"] = "unsafe-none"
     response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
     if _is_production():
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
