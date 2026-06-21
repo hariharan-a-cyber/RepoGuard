@@ -78,8 +78,49 @@
       .then(function (r) { return r.ok ? r.json() : null; }).then(function (d) { if (d && d.token) setSession(d); }).catch(function () {});
   }
 
-  /* ---------------- Google One Tap ---------------- */
+  /* ---------------- Firebase / Google Sign-In ---------------- */
   function initGoogle() {
+    // Try Firebase Auth first, fall back to Google One Tap
+    fetch("/auth/firebase/config").then(function (r) { return r.ok ? r.json() : null; }).then(function (fbCfg) {
+      if (fbCfg && fbCfg.enabled && fbCfg.apiKey && window.firebase) {
+        _initFirebase(fbCfg);
+      } else {
+        _initGoogleOneTap();
+      }
+    }).catch(function () { _initGoogleOneTap(); });
+  }
+
+  function _initFirebase(cfg) {
+    try {
+      if (!firebase.apps.length) {
+        firebase.initializeApp({ apiKey: cfg.apiKey, authDomain: cfg.authDomain, projectId: cfg.projectId, appId: cfg.appId });
+      }
+      var btn = $("googleSignInBtn");
+      if (btn) {
+        btn.hidden = false;
+        btn.addEventListener("click", function () {
+          var provider = new firebase.auth.GoogleAuthProvider();
+          firebase.auth().signInWithPopup(provider).then(function (result) {
+            if (!result || !result.user) throw new Error("No user returned from Firebase");
+            return result.user.getIdToken(true);
+          }).then(function (idToken) {
+            return fetch("/auth/firebase/signin", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ idToken: idToken }) });
+          }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+              if (!x.ok) { toast("Sign-in error: " + ((x.d && x.d.detail) || "Google sign-in failed.")); return; }
+              firebase.auth().signOut().catch(function(){});
+              setSession(x.d); closeAuth(); toast("Signed in with Google.");
+            }).catch(function (e) {
+              if (e && e.code === "auth/popup-closed-by-user") return;
+              toast("Google sign-in error: " + (e && e.message ? e.message : String(e)));
+              console.error("Firebase signin error:", e);
+            });
+        });
+      }
+    } catch (e) { _initGoogleOneTap(); }
+  }
+
+  function _initGoogleOneTap() {
     fetch("/auth/google/config").then(function (r) { return r.ok ? r.json() : null; }).then(function (cfg) {
       if (cfg && cfg.enabled && cfg.client_id) {
         state.googleClientId = cfg.client_id;
@@ -103,6 +144,7 @@
       var btn = $("googleSignInBtn"); if (btn) btn.hidden = true;
     });
   }
+
   function onGoogleCredential(resp) {
     if (!resp || !resp.credential) return;
     fetch("/auth/google/one-tap", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ credential: resp.credential }) })
@@ -335,6 +377,14 @@
     $("tabRegister").addEventListener("click", function () { setAuthMode("register"); });
     $("authSubmit").addEventListener("click", doAuth);
     $("authPassword").addEventListener("keydown", function (e) { if (e.key === "Enter") doAuth(); });
+    $("togglePassword").addEventListener("click", function () {
+      var inp = $("authPassword");
+      var showing = inp.type === "text";
+      inp.type = showing ? "password" : "text";
+      $("eyeIcon").innerHTML = showing
+        ? '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
+        : '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    });
     var nl = $("navLoginBtn"); if (nl) nl.addEventListener("click", openAuth);
     $("scanBtn").addEventListener("click", startScan);
     $("repoUrl").addEventListener("keydown", function (e) { if (e.key === "Enter") startScan(); });

@@ -14,6 +14,8 @@ from backend.models.scan_model import (
     AuthLogoutRequest,
     AuthRefreshRequest,
     AuthSessionResponse,
+    FirebaseConfigResponse,
+    FirebaseSignInRequest,
     GoogleOneTapConfigResponse,
     GoogleOneTapRequest,
     UserAuthRequest,
@@ -78,6 +80,90 @@ def _verify_google_credential(credential: str, client_id: str) -> str:
     if not verified_email:
         raise HTTPException(status_code=401, detail="Google account email is missing")
     return verified_email
+
+
+_firebase_admin_app = None
+_firebase_admin_lock = Lock()
+
+
+def _firebase_project_id() -> str:
+    return str(os.getenv("FIREBASE_PROJECT_ID", "")).strip()
+
+
+def _get_firebase_admin_app():
+    global _firebase_admin_app
+    if _firebase_admin_app is not None:
+        return _firebase_admin_app
+    with _firebase_admin_lock:
+        if _firebase_admin_app is not None:
+            return _firebase_admin_app
+        project_id = _firebase_project_id()
+        if not project_id:
+            return None
+        try:
+            import firebase_admin
+            from firebase_admin import credentials as fb_credentials
+            sa_path = str(os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")).strip()
+            if sa_path:
+                cred = fb_credentials.Certificate(sa_path)
+            else:
+                cred = fb_credentials.ApplicationDefault()
+            _firebase_admin_app = firebase_admin.initialize_app(cred, {"projectId": project_id})
+        except Exception:
+            _firebase_admin_app = None
+    return _firebase_admin_app
+
+
+def _verify_firebase_id_token(id_token: str) -> str:
+    project_id = _firebase_project_id()
+    if not project_id or not id_token:
+        raise HTTPException(status_code=503, detail="Firebase not configured")
+
+    # Try firebase-admin SDK first
+    app = _get_firebase_admin_app()
+    if app is not None:
+        try:
+            from firebase_admin import auth as fb_auth
+            decoded = fb_auth.verify_id_token(id_token, app=app)
+            email = str(decoded.get("email") or "").strip().lower()
+            if email:
+                return email
+        except Exception:
+            pass
+
+    # Fallback: verify Firebase JWT using Google's public key endpoint
+    try:
+        import jwt as pyjwt
+        import requests as http_req
+        resp = http_req.get(
+            "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com",
+            timeout=5,
+        )
+        if resp.status_code != 200:
+            raise HTTPException(status_code=401, detail="Could not fetch Firebase public keys")
+        for cert_pem in resp.json().values():
+            try:
+                payload = pyjwt.decode(
+                    id_token,
+                    cert_pem,
+                    algorithms=["RS256"],
+                    audience=project_id,
+                    options={"verify_iss": False},
+                )
+                iss = str(payload.get("iss") or "")
+                if iss != f"https://securetoken.google.com/{project_id}":
+                    continue
+                email = str(payload.get("email") or "").strip().lower()
+                if email:
+                    return email
+            except Exception:
+                continue
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=401, detail="Firebase token verification failed") from exc
+
+    raise HTTPException(status_code=401, detail="Invalid Firebase ID token")
 
 
 def _extract_bearer_token(authorization: str | None) -> str | None:
@@ -340,6 +426,44 @@ def logout(
     auth_service.logout(token, candidate_refresh)
     _clear_refresh_cookie(response, request)
     return {"status": "ok"}
+
+
+@router.get("/firebase/config", response_model=FirebaseConfigResponse)
+def firebase_config() -> FirebaseConfigResponse:
+    api_key = str(os.getenv("FIREBASE_API_KEY", "")).strip()
+    project_id = _firebase_project_id()
+    if not api_key or not project_id:
+        return FirebaseConfigResponse(enabled=False)
+    auth_domain = str(os.getenv("FIREBASE_AUTH_DOMAIN", f"{project_id}.firebaseapp.com")).strip()
+    app_id = str(os.getenv("FIREBASE_APP_ID", "")).strip()
+    return FirebaseConfigResponse(
+        enabled=True,
+        apiKey=api_key,
+        authDomain=auth_domain,
+        projectId=project_id,
+        appId=app_id or None,
+    )
+
+
+@router.post("/firebase/signin", response_model=AuthSessionResponse)
+def firebase_signin(payload: FirebaseSignInRequest, request: Request, response: Response) -> AuthSessionResponse:
+    verified_email = _verify_firebase_id_token(payload.idToken)
+    try:
+        access_token, refresh_token, user = auth_service.login_or_register_google(verified_email)
+    except AuthError as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
+
+    _set_refresh_cookie(response, refresh_token, request)
+    return AuthSessionResponse(
+        token=access_token,
+        refresh_token="",
+        token_type="bearer",
+        expires_in=auth_service.access_token_ttl_seconds(),
+        email=user.email,
+        plan=user.plan,
+        scans_remaining_today=auth_service.scans_remaining_today(user.email, user.plan),
+        unlocked_scan_count=auth_service.unlocked_scan_count(user.email),
+    )
 
 
 @router.get("/me", response_model=AuthMeResponse)

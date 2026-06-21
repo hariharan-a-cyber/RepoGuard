@@ -70,11 +70,11 @@ async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
-        "script-src 'self' https://accounts.google.com https://apis.google.com https://www.gstatic.com https://plausible.io 'unsafe-inline'; "
+        "script-src 'self' https://accounts.google.com https://apis.google.com https://www.gstatic.com https://plausible.io 'unsafe-inline' https://firebasestorage.googleapis.com; "
         "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; "
         "font-src 'self' https://fonts.gstatic.com data:; "
         "img-src 'self' data: https:; "
-        "connect-src 'self' https:; "
+        "connect-src 'self' https: https://securetoken.googleapis.com https://identitytoolkit.googleapis.com; "
         "frame-src 'self' https://accounts.google.com https://*.google.com; "
         "object-src 'none'; "
         "base-uri 'self'; "

@@ -297,6 +297,10 @@ h1,h2,h3 { margin: 0; font-weight: 700; letter-spacing: -.022em; line-height: 1.
 .auth-tab.is-active { background: var(--panel-3); color: var(--text); }
 .field { margin-bottom: 1rem; }
 .auth-error { color: var(--crit); font-size: .85rem; min-height: 1.1em; margin: 0 0 .8rem; }
+.input-eye-wrap { position: relative; display: flex; }
+.input-eye-wrap .text-input { flex: 1; padding-right: 2.6rem; }
+.eye-btn { position: absolute; right: .6rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-3); padding: .2rem; display: flex; align-items: center; }
+.eye-btn:hover { color: var(--text); }
 
 .report-overlay { align-items: flex-start; padding: 2rem 1rem; overflow-y: auto; }
 .report-dialog { width: 100%; max-width: 860px; background: var(--bg-1); border: 1px solid var(--line-2); border-radius: var(--r); padding: 2rem; position: relative; margin: auto; }

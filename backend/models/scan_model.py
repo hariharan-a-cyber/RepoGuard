@@ -207,6 +207,18 @@ class AuditUnlockRequest(BaseModel):
     scan_id: str = Field(..., min_length=1)
 
 
+class FirebaseSignInRequest(BaseModel):
+    idToken: str = Field(..., min_length=10)
+
+
+class FirebaseConfigResponse(BaseModel):
+    enabled: bool = False
+    apiKey: Optional[str] = None
+    authDomain: Optional[str] = None
+    projectId: Optional[str] = None
+    appId: Optional[str] = None
+
+
 class AuditUnlockResponse(BaseModel):
     status: str = "ok"
     scan_id: str

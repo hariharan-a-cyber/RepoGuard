@@ -5,8 +5,10 @@ from backend.services.secret_scanner import scan_secrets
 
 
 def test_scan_secrets_detects_aws_access_key(tmp_path: Path) -> None:
+    # Split literal to avoid triggering GitHub secret scanning on the test file itself.
+    fake_key = "AKIA" + "1234567890ABCDEF"
     source = tmp_path / "app.py"
-    source.write_text('AWS_KEY = "AKIA1234567890ABCDEF"\n', encoding="utf-8")
+    source.write_text(f'AWS_KEY = "{fake_key}"\n', encoding="utf-8")
 
     findings = scan_secrets(tmp_path)
 

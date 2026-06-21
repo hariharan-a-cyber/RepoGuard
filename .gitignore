@@ -39,5 +39,10 @@ node_modules/
 # Scan/output artifacts
 artifacts/
 
+# SQLite database (contains user data)
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
 # Temporary benchmark outputs
 benchmark/results/
