@@ -8,6 +8,14 @@ Built with FastAPI + a custom detection engine. No LLM in the critical detection
 
 ---
 
+## Demo
+
+![RepoGuard scanning a repository in real time](docs/Repoguard-demo.gif)
+
+*Paste a GitHub URL → live five-stage analysis → ranked findings with exact fixes.*
+
+---
+
 ## What it does
 
 - **Clones** any public GitHub repository into an isolated workspace.
