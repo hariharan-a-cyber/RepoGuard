@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <!-- Dark background matching app theme -->
+  <rect width="240" height="240" rx="48" fill="#0d1117"/>
+
+  <!-- Subtle glow behind shield -->
+  <ellipse cx="120" cy="125" rx="70" ry="65" fill="url(#glow)" opacity="0.25"/>
+
+  <!-- Shield body with gradient stroke + subtle fill -->
+  <path d="M120 44 L52 72 v52 c0 44 30 75 68 88 38-13 68-44 68-88 V72 Z"
+        fill="url(#shieldFill)"
+        stroke="url(#grad)"
+        stroke-width="4"
+        stroke-linejoin="round"/>
+
+  <!-- Checkmark -->
+  <polyline points="88,122 108,142 152,100"
+            fill="none"
+            stroke="url(#grad)"
+            stroke-width="9"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+
+  <defs>
+    <linearGradient id="grad" x1="52" y1="44" x2="188" y2="212" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4ade80"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="shieldFill" x1="52" y1="44" x2="188" y2="212" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4ade80" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0.08"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

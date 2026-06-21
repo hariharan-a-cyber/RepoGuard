@@ -99,6 +99,15 @@ The benchmark is the development loop: every detection change is measured agains
 
 ---
 
+## Pull request scanning
+
+Install the GitHub App and RepoGuard scans every pull request automatically,
+posting a check run on the PR commit with the full findings summary.
+
+![RepoGuard scanning a pull request](docs/RepoGuardPRDemo.gif)
+
+---
+
 ## Running locally
 
 Requires **Python 3.11+** and **git**.
