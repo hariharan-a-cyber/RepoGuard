@@ -1,6 +1,6 @@
 # RepoGuard
 
-**A static application security scanner for GitHub repositories.** Paste a public repo URL and RepoGuard clones it, runs a five-stage deterministic analysis pipeline, and returns ranked, evidence-backed findings with concrete fixes — measured at **95.5% F1** on a labeled benchmark, with **100% precision** (zero false alarms on safe code in the corpus).
+**A static application security scanner for GitHub repositories.** Paste a public repo URL and RepoGuard clones it, runs a five-stage deterministic analysis pipeline, and returns ranked, evidence-backed findings with concrete fixes — measured at **100% F1 on the test corpus**, with **100% precision** (zero false alarms on safe code in the corpus).
 
 Built with FastAPI + a custom detection engine. No LLM in the critical detection path: the same commit always produces the same findings.
 
@@ -76,14 +76,14 @@ Detection quality is **measured, not asserted.** RepoGuard ships with a benchmar
 | Metric | Score |
 |--------|-------|
 | Precision | **100.0%** |
-| Recall | **91.3%** |
-| F1 | **95.5%** |
+| Recall | **100.0%** |
+| F1 | **100.0%** |
 
 The corpus contains hand-authored vulnerable samples and safe "look-alike" traps (code that resembles a vulnerability but is safe) across categories including SQL/command/code injection, path traversal, NoSQL injection, secrets, open redirect, and weak randomness.
 
 **Honest limitations** (documented in `benchmark/RESULTS.md`):
-- The corpus is **hand-authored**, not scraped from real repositories, and the same author wrote both the corpus and the engine — so this is a measure of progress on a controlled set, **not** a claim of 95.5% accuracy on arbitrary real-world code. To validate externally, drop a real labeled dataset (e.g. the OWASP Benchmark) into `benchmark/corpus/` and re-run.
-- **Cross-variable SQL injection** (where the query string and concatenation are on separate lines, passing through an intermediate variable) is not caught by the regex layer — that's a data-flow problem requiring Python taint support, which is future work.
+- The corpus is **hand-authored**, not scraped from real repositories, and the same author wrote both the corpus and the engine — so this is a measure of progress on a controlled set, **not** a claim of 100% accuracy on arbitrary real-world code. To validate externally, drop a real labeled dataset (e.g. the OWASP Benchmark) into `benchmark/corpus/` and re-run.
+- Two cases that initially slipped through — SQL injection passed through an intermediate variable, and a secret split across two string literals — were traced and fixed by extending the taint analysis and secret matching. Both are now caught.
 
 The benchmark is the development loop: every detection change is measured against it before and after, so improvements are verified and regressions are caught immediately rather than shipped.
 
@@ -187,7 +187,6 @@ tests/                 # ~230 unit/integration tests
 
 ## Roadmap
 
-- Python taint analysis (catch cross-variable SQL injection)
 - External validation against the OWASP Benchmark and known-CVE project snapshots
 - Externalized job/metrics state for multi-process deployment
 - Additional language support (Go, Ruby)
