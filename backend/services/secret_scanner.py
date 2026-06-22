@@ -114,8 +114,13 @@ def scan_secrets(repo_dir: Path) -> List[dict]:
             continue
 
         for line_num, line in enumerate(content.splitlines(), start=1):
+            # Merge adjacent quoted string literals joined by + so patterns like
+            # key = "sk_live_" + "51HxQ..." are detected even when split.
+            merged = re.sub(r'["\'][ \t]*\+[ \t]*["\']', '', line)
             for rule in SECRET_PATTERNS:
-                match = rule["pattern"].search(line)
+                match = rule["pattern"].search(line) or (
+                    merged != line and rule["pattern"].search(merged)
+                )
                 if not match:
                     continue
 

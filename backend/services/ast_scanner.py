@@ -145,6 +145,58 @@ def analyze_python_ast(content: str) -> List[dict]:
                             "name": "Weak RNG in security function", "severity": "medium",
                             "snippet": nm + "(...)",
                             "fix": "Use the secrets module (secrets.token_hex / secrets.randbelow) for security values."})
+
+    # Fourth pass: SQL injection via intermediate variable.
+    # Step A: collect vars directly assigned a string constant containing SQL keywords.
+    _sql_frag_vars: set = set()
+    for node in _pyast.walk(tree):
+        if not isinstance(node, _pyast.Assign):
+            continue
+        val = node.value
+        if not (isinstance(val, _pyast.Constant) and isinstance(val.value, str)):
+            continue
+        upper = val.value.upper()
+        if _SQL_VERB.search(upper) or _SQL_CLAUSE.search(upper):
+            for t in node.targets:
+                if isinstance(t, _pyast.Name):
+                    _sql_frag_vars.add(t.id)
+    # Step B: propagate taint through BinOp string concatenation (iterate until stable).
+    changed = True
+    while changed:
+        changed = False
+        for node in _pyast.walk(tree):
+            if not isinstance(node, _pyast.Assign):
+                continue
+            val = node.value
+            if not (isinstance(val, _pyast.BinOp) and isinstance(val.op, _pyast.Add)):
+                continue
+            l, r = val.left, val.right
+            involves = (isinstance(l, _pyast.Name) and l.id in _sql_frag_vars) or \
+                       (isinstance(r, _pyast.Name) and r.id in _sql_frag_vars)
+            if not involves:
+                continue
+            for t in node.targets:
+                if isinstance(t, _pyast.Name) and t.id not in _sql_frag_vars:
+                    _sql_frag_vars.add(t.id)
+                    changed = True
+    # Step C: flag execute() calls whose sole argument is a tainted variable.
+    # Two-argument form (e.g. execute(query, params)) indicates parameterized query — skip.
+    for node in _pyast.walk(tree):
+        if not isinstance(node, _pyast.Call):
+            continue
+        fn = _full_name(node.func)
+        if "execute" not in fn.lower():
+            continue
+        if len(node.args) != 1:
+            continue
+        arg = node.args[0]
+        if isinstance(arg, _pyast.Name) and arg.id in _sql_frag_vars:
+            ln = getattr(node, "lineno", 1)
+            findings.append({"line": ln, "type": "sql_injection",
+                "name": "SQL injection via intermediate variable", "severity": "high",
+                "snippet": fn + "(" + arg.id + ")",
+                "fix": "Use parameterized queries: cursor.execute('SELECT ... WHERE x = %s', (value,))"})
+
     return findings
 
 

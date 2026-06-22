@@ -6,6 +6,7 @@ Runs the REAL detection layers that work without network/external tools:
   - RuleEngine        (regex rules, all languages)
   - scan_secrets      (secret detection with test-file suppression)
   - TaintService      (source->sink taint for JS/Go/C#)
+  - hybrid_analyze_file / analyze_python_ast  (AST-based Python + JS scanner)
 
 Reports precision / recall / F1 overall and per category, and names every
 missed detection and false alarm so gaps are actionable.
@@ -24,6 +25,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from backend.services.ast_scanner import hybrid_analyze_file  # noqa: E402
 from backend.services.rule_engine import RuleEngine          # noqa: E402
 from backend.services.secret_scanner import scan_secrets      # noqa: E402
 from backend.services.taint_service import TaintService       # noqa: E402
@@ -31,6 +33,19 @@ from backend.services.taint_service import TaintService       # noqa: E402
 HERE = Path(__file__).resolve().parent
 CORPUS = HERE / "corpus"
 LABELS = json.loads((HERE / "labels.json").read_text())
+
+# Map AST finding types (from hybrid_analyze_file) to benchmark category tokens.
+AST_TYPE_TO_CATEGORY = {
+    "unsafe_pickle": "unsafe_deserialization",
+    "unsafe_yaml": "unsafe_deserialization",
+    "unsafe_deserialization": "unsafe_deserialization",
+    "command_injection": "command_injection",
+    "weak_random": "weak_random",
+    "code_execution": "code_injection",
+    "dangerous_eval": "code_injection",
+    "sql_injection": "sql_injection",
+    "path_traversal": "path_traversal",
+}
 
 # Map every engine finding onto a normalized category token so ground-truth
 # labels can be category-based rather than tied to one rule_id.
@@ -82,6 +97,18 @@ def categories_for_file(engine, taint, repo_dir, rel_path) -> set[str]:
         fp = str(getattr(flow, "file_path", "")).replace("\\", "/")
         if fp == rel_path or fp.endswith(rel_path):
             cats.add(_taint_category(flow))
+
+    # 4. AST scanner — same path the production ScannerService uses.
+    full_path = repo_dir / rel_path
+    if full_path.is_file():
+        try:
+            content = full_path.read_text(encoding="utf-8", errors="replace")
+            for finding in hybrid_analyze_file(full_path, content):
+                cat = AST_TYPE_TO_CATEGORY.get(finding.get("type", ""), "")
+                if cat:
+                    cats.add(cat)
+        except Exception:
+            pass
 
     return cats
 
@@ -143,7 +170,7 @@ def main() -> int:
     f1 = (2 * precision * recall / (precision + recall)) if (precision + recall) else 0.0
 
     print("=" * 64)
-    print("REPOGUARD DETECTION BENCHMARK  (rule + secret + taint)")
+    print("REPOGUARD DETECTION BENCHMARK  (rule + secret + taint + AST)")
     print("=" * 64)
     print(f"Corpus: {len(LABELS['vulnerable'])} vulnerable, {len(LABELS['safe'])} safe files")
     print("-" * 64)

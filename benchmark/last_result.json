@@ -1,0 +1,10 @@
+{
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "tp": 23,
+  "fn": 0,
+  "fp": 0,
+  "false_negatives": [],
+  "false_positives": []
+}
