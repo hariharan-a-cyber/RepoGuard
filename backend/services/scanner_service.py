@@ -107,6 +107,7 @@ class ScannerService:
 
     def __init__(self) -> None:
         self.semgrep_timeout_seconds = self._read_int_env("SEMGREP_TIMEOUT_SECONDS", 480)
+        self.semgrep_max_memory_mb = self._read_int_env("SEMGREP_MAX_MEMORY_MB", 0)
         self.bandit_timeout_seconds = self._read_int_env("BANDIT_TIMEOUT_SECONDS", 180)
         self.max_findings = self._read_int_env("MAX_FINDINGS", 200)
         self.semgrep_executable = self._resolve_tool_executable("semgrep")
@@ -1627,10 +1628,7 @@ class ScannerService:
     def run_semgrep(self, repo_dir: Path, strict_mode: bool = False) -> List[SecurityIssue]:
         command = [
             self.semgrep_executable,
-            "--config", "p/python",
             "--config", "p/nodejs",
-            "--config", "p/flask",
-            "--config", "p/django",
             "--config", "p/express",
             "--config", "p/owasp-top-ten",
             "--severity", "WARNING",
@@ -1648,8 +1646,17 @@ class ScannerService:
             "*.mjs",
             "--include",
             "*.cjs",
-            str(repo_dir),
+            "--metrics", "off",
+            "--jobs", "1",
         ]
+        if self.semgrep_max_memory_mb > 0:
+            command.extend(["--max-memory", str(self.semgrep_max_memory_mb)])
+        command.extend([
+            "--timeout", "30",
+            "--max-target-bytes", "500000",
+            "--disable-version-check",
+            str(repo_dir),
+        ])
         data = self._run_command(command, timeout_seconds=self.semgrep_timeout_seconds)
 
         issues: List[SecurityIssue] = []
